@@ -1,0 +1,42 @@
+<?php
+
+/**
+ * @file
+ * Formats search results displayed using search-result.tpl.php and search-results.tpl.php, from the Search module.
+ *
+ * @author
+ * Michael Dean
+ * mike@koumbit.org
+ * 
+ * @see ccednet_search.module
+ */
+ 
+/**
+ * Form constructor for the CCEDNET Search settings.
+ */
+function ccednet_search_settings() {
+  //get a list of available node types
+  $node_types = node_type_get_names();
+  
+  // The email settings section of the form.
+  $form['search_settings'] = array(
+    '#title'          => t('Search Display Settings'),
+    '#type'           => 'fieldset',
+    '#description'    => t('Configure which views should link to each custom content type in the site\'s search results.'),
+  );
+  
+  //create a field for each content type
+  //the field that will contain the URL for a view.
+  //The view should be one that aggregates content of this content type
+  foreach($node_types as $machine_name=>$human_name) {
+    $views_path = 'ccednet_search_' . $machine_name . '_view_path';
+    $form['search_settings'][$views_path] = array(
+      '#title'          => t('Path to view associated with ' . $human_name),
+      '#type'           => 'textfield',
+      '#description'    => t('The path of the view. Used as a hyperlink in search results for ' . $human_name),
+      '#default_value'  => variable_get($views_path, '')
+    );   
+  }
+  
+  return system_settings_form($form);
+}

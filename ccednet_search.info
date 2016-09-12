@@ -1,0 +1,9 @@
+name = CCEDNET Search
+description = Format search results.
+package = CCEDNET
+core = 7.x
+
+files[] = ccednet_search.admin.inc
+files[] = ccednet_search.module
+
+dependencies[] = search:search

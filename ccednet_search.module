@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * @file
+ * Formats search results displayed using search-result.tpl.php and search-results.tpl.php, from the Search module.
+ *
+ * @author
+ * Michael Dean
+ * mike@koumbit.org
+ * 
+ * @see https://redmine.koumbit.net/issues/12231
+ * 
+ * On the line underneath the text in the search result:
+ * - remove the user who posted it
+ * - keep the date but remove the time
+ * - add the content type (toolbox, event, Job, What’s new in CED, CCEDNet News, etc) 
+ *     with the content type linked to the appropriate section of the site:
+ */
+
+/**
+ * Implements hook_menu().
+ * 
+ * @see ccednet_search.admin.inc
+ * @uses ccednet_search_settings()
+ */
+function ccednet_search_menu() {
+  
+  // Define the URL and behavior for the configuration page.
+  $items['admin/config/search/ccednet'] = array(
+    'title'             => 'CCEDNET Search Display Settings',
+    'description'       => 'Configure the custom search display settings.',
+    'type'              => MENU_NORMAL_ITEM, 
+    
+    // The configuration form defined in email_custom_pdf_settings() 
+    'page callback'     => 'drupal_get_form',
+    'page arguments'    => array('ccednet_search_settings'),
+    'file'              => 'ccednet_search.admin.inc',
+    
+    // Permissions to access the module configuration are defined in hook_permission
+    'access arguments'  => array('access CCEDNET Search Settings')
+  );
+  
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function ccednet_search_permission() {
+  return array(
+    'access CCEDNET Search Settings' => array(
+      'title' => t('CCEDNET Search Settings.'),
+      'description' => t('Access the CCEDNET search settings page.'),
+    ),
+  );
+}
+
+/**
+* Implements hook_preprocess_search_result().
+* 
+* https://api.drupal.org/api/drupal/modules!search!search.pages.inc/function/template_preprocess_search_result/7.x\
+* 
+* @todo link the name of the view that summarizes all nodes of a certain content type
+* to the content type shown in the result.
+* 
+*/
+function ccednet_search_preprocess_search_result(&$variables) {
+  //get the site URL
+  global $base_url;
+
+  //User and date are stored in $variables['info']
+  if(!empty($variables['info']) && !empty($variables['result']['node'])) {
+    
+    //reformat the date to numeric month/day/year
+    $reformatted_date = format_date($variables['result']['date'], 'custom', 'm\/j\/Y');
+    
+    //Get the name of the content type of the node being returned
+    $content_type_human_name = $variables['result']['type'];
+    $content_type_machine_name = $variables['result']['node']->type;
+    
+    //format the title of the content type and the date for the search result
+    $views_path = 'ccednet_search_' . $content_type_machine_name . '_view_path';
+    $content_type_url = variable_get($views_path, '');
+    $content_type_link = '<a href="' . $base_url . '/' . $content_type_url . '">' . $content_type_human_name . '</a>';
+    $variables['info'] = $content_type_link . ' - ' . $reformatted_date;
+  }
+}
