@@ -55,6 +55,12 @@ function ccednet_search_permission() {
   );
 }
 
+function ccednet_search_node_view($node, $view_mode, $langcode) {
+  
+  //get language of current node
+  dpm(entity_language('node', $node));
+}
+
 /**
 * Implements hook_preprocess_search_result().
 * 
@@ -67,7 +73,8 @@ function ccednet_search_permission() {
 function ccednet_search_preprocess_search_result(&$variables) {
   //get the site URL
   global $base_url;
-
+  $node = $variables['result']['node'];
+  
   //User and date are stored in $variables['info']
   if(!empty($variables['info']) && !empty($variables['result']['node'])) {
     
@@ -79,7 +86,10 @@ function ccednet_search_preprocess_search_result(&$variables) {
     $content_type_machine_name = $variables['result']['node']->type;
     
     //format the title of the content type and the date for the search result
-    $views_path = 'ccednet_search_' . $content_type_machine_name . '_view_path';
+    //get the path of the view assoicated with the content type and language.
+    $node_langage_code = entity_language('node', $node);
+    $views_path = 'ccednet_search_' . $content_type_machine_name . '_' . $node_langage_code . '_view_path';
+    
     $content_type_url = variable_get($views_path, '');
     $content_type_link = '<a href="' . $base_url . '/' . $content_type_url . '">' . $content_type_human_name . '</a>';
     $variables['info'] = $content_type_link . ' - ' . $reformatted_date;
